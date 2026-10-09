@@ -1,0 +1,5 @@
+/*
+ * Legacy source: verbatim copy from the Kismo archive, imported 2026-10-09.
+ * Origin: \\crogserver\Development\C++\KismoCore\_SOURCE_\KismoGL\Texture.h
+ * Status: unique (no other copy of this file name in the archive)
+ */

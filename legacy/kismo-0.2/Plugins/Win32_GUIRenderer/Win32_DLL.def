@@ -1,0 +1,7 @@
+; Legacy source: verbatim copy from the Kismo archive, imported 2026-10-09.
+; Origin: \\crogserver\Development\C++\_ARCHIVE_\Kismo-0.2\Plugins\Win32_GUIRenderer\Win32_DLL.def
+; Status: unique (no other copy of this file name in the archive)
+EXPORTS
+	dllGetInfo @1
+	dllStartPlugin @2
+	dllStopPlugin  @3

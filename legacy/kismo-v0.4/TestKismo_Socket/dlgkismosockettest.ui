@@ -1,0 +1,45 @@
+<!-- Legacy source: verbatim copy from the Kismo archive, imported 2026-10-09. -->
+<!-- Origin: \\crogserver\Development\C++\_ARCHIVE_\Kismo v0.4\TestKismo_Socket\dlgkismosockettest.ui -->
+<!-- Status: unique (no other copy of this file name in the archive) -->
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DlgKismoSocketTestClass</class>
+ <widget class="QMainWindow" name="DlgKismoSocketTestClass">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>563</width>
+    <height>382</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>DlgKismoSocketTest</string>
+  </property>
+  <widget class="QWidget" name="centralWidget"/>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>563</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources>
+  <include location="dlgkismosockettest.qrc"/>
+ </resources>
+ <connections/>
+</ui>

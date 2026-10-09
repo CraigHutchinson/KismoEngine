@@ -1,0 +1,2 @@
+# Store legacy sources byte-for-byte: no EOL or BOM normalisation, so the manifest hashes stay valid.
+legacy/** -text

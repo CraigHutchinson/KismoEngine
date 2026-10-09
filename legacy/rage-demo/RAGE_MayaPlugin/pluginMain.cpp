@@ -1,0 +1,96 @@
+/*
+ * Legacy source: verbatim copy from the Kismo archive, imported 2026-10-09.
+ * Origin: \\crogserver\Development\C++\_ARCHIVE_\RAGE_Demo\RAGE_MayaPlugin\pluginMain.cpp
+ * Status: superseded by kismo-v0.3/Kismo_MayaPlugin/pluginMain.cpp (same name, content differs)
+ */
+//Link maya libraries
+#ifdef WIN32
+	#pragma comment(lib,"Foundation.lib")
+	#pragma comment(lib,"OpenMaya.lib")
+	#pragma comment(lib,"OpenMayaFx.lib")
+	#pragma comment(lib,"OpenMayaUI.lib")
+	#pragma comment(lib,"Image.lib")
+	#pragma comment(lib,"OpenMayaAnim.lib")
+#endif
+
+#include "FileTranslator.h"
+#include "Options.h"
+#include "framework/String.h"
+
+//---------------Include all translators here -----------------
+#include "RAGEAscii_FileWriter.h"
+#include "RAGEBinary_FileWriter.h"
+//---------------Include all translators here -----------------
+//----Add all translaters and their type names to the map -----
+extern void initialiseFileTranslators()
+{
+	g_fileFormats[ "ascii" ].newWriter = RAGEAscii_FileWriter::create;	
+	g_fileFormats[ "binary" ].newWriter = RAGEBinary_FileWriter::create;	
+}
+//---------------Include all translators here -----------------
+
+#include <maya/MStatus.h>
+#include <maya/MObject.h>
+#include <maya/MFnPlugin.h>
+
+using std::cerr;
+using std::cout;
+
+// specifies a script for the Export Options UI
+const char* const melOptionScript = "RAGEExport";
+
+
+
+//register the plugin in the maya plugin list
+MStatus initializePlugin( MObject obj )
+{ 
+	//error status
+	MStatus   status;
+
+	//create a new plugin instance
+	MFnPlugin plugin( obj, "RAGE Engine File Translator", "8.5", "Any");
+
+	//Register the plugin with Maya 
+	status = plugin.registerFileTranslator( "RAGEFileTranslator", 
+		"none",
+		FileTranslator::creator,
+		(char*)melOptionScript,
+		(char*)defaultArgument );
+
+	if (status != MS::kSuccess) 
+	{
+  		status.perror( "Failed to register \"RAGE Engine File Translator\"\n" );
+		return status;
+	}
+	else
+	{
+		cout << "RAGE Engine File Translator registered OK\n";
+	}
+	
+	//Initialise the file writer/reader maps and any other information
+	initialiseFileTranslators();
+
+	return status;
+}
+
+//unregister the plugin from the maya plugin list
+MStatus uninitializePlugin( MObject obj )
+{
+	MStatus   status;
+	MFnPlugin plugin( obj );
+
+	//De-register the plugin
+	status = plugin.deregisterFileTranslator( "RAGEFileTranslator" );
+
+	if (status != MS::kSuccess) 
+	{
+		status.perror("RAGEFileTranslator::deregisterFileTranslator did not execute successfully\n");
+		return status;
+	}
+	else
+	{
+		cout << "RAGE Engine File Translator un-registered\n";
+	}
+
+	return status;
+}

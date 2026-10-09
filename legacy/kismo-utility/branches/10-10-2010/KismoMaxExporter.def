@@ -1,0 +1,13 @@
+; Legacy source: verbatim copy from the Kismo archive, imported 2026-10-09.
+; Origin: \\crogserver\Development\C++\_ARCHIVE_\Kismo Utility\branches\10-10-2010\KismoMaxExporter.def
+; Status: duplicate of kismo-utility/splitversion/KismoMaxExporter.def
+LIBRARY KismoMaxExporter.dle
+EXPORTS
+   LibDescription       @1       PRIVATE
+   LibNumberClasses     @2       PRIVATE
+   LibClassDesc         @3       PRIVATE
+   LibVersion           @4       PRIVATE
+   LibInitialize        @6       PRIVATE
+   LibShutdown          @7       PRIVATE
+SECTIONS
+   .data READ WRITE

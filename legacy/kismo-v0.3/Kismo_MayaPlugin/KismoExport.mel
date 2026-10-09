@@ -1,0 +1,541 @@
+/*
+ * Legacy source: verbatim copy from the Kismo archive, imported 2026-10-09.
+ * Origin: \\crogserver\Development\C++\_ARCHIVE_\Kismo v0.3\Kismo_MayaPlugin\KismoExport.mel
+ * Status: current (newest copy of this file name in the archive)
+ */
+// This	mel	script should be	placed inside the Maya scripts
+// directory. This is usually "my documents/maya/scripts"
+//
+// $parent - the parent	UI layout
+// $action - "post"	or "query"
+// $settings - the initial exporter	settings
+// $callback - the function	to call
+//
+
+string $pluginFile= "CXMLExporter.mll";
+loadPlugin $pluginFile;
+
+global string $CXMLwindow ="";
+
+global proc int imagefolderBrowser()
+{
+	fileBrowserDialog -mode 4 -fileCommand ( "setImageFolder" ) -fileType "image" 
+		-actionName  "Select the image output path...";
+		
+	return 1;
+}
+
+global proc int setImageFolder( string $filename, string $fileType )
+{
+ 	textField  -edit -fileName $filename imageFolder;
+ 	return 1;
+}
+
+proc string exportOptions( string $action, string $initialSettings )
+{
+	if ( $action == "post" )
+	{
+		int		$bResult;
+		string	$currentOptions;
+		string	$optionList[];
+		string	$optionBreakDown[];
+		int		$index;
+		
+		//Group the options
+		rowColumnLayout -numberOfColumns 1 -width 300;
+	
+			
+ 			radioCollection expFormat;
+ 			radioButton -width 300 -label "Scene file (CSF)" scene;
+ 			radioButton -width 300 -label "Scene file + referenced external meshes (CSF + CMF)" sceneandmesh;
+ 			radioButton -width 300 -label "Mesh files only (CMF)" mesh;
+		 	
+		 	radioCollection -edit -select scene expFormat;	
+ 					
+		setParent ..;
+		
+		// Now set to current settings.
+		$currentOptions = $initialSettings;
+		
+		if ( size( $currentOptions ) > 0 ) 
+		{
+			tokenize( $currentOptions, ";", $optionList );
+			
+			for ( $index = 0; $index < size( $optionList ); $index++ )
+			{
+				tokenize( $optionList[$index], "=", $optionBreakDown );
+	
+				if ( $optionBreakDown[0] == "expFormat" )
+				{
+					radioCollection -edit -select $optionBreakDown[1] expFormat;
+				}
+			}				
+		}
+		
+		return "";
+		
+	}
+	else if ( $action == "query" )	
+	{
+		
+		string $option = "-type " + `radioCollection -query -select expFormat` + " ";			
+		print( $option );
+		return $option;
+	}
+
+}
+
+proc string includeOptions( string $action, string $initialSettings )
+{
+	if ( $action == "post" )
+	{
+		int		$bResult;
+		string	$currentOptions;
+		string	$optionList[];
+		string	$optionBreakDown[];
+		int		$index;
+		
+		//Grop the options
+		rowColumnLayout -numberOfColumns 4;
+	
+			//Checkbox to specify whether to export meshes or not
+			checkBox 
+				-label "Meshes" 
+				-annotation "Export meshes." 
+				-value true
+				-onCommand "frameLayout -edit -enable true meshFrame"
+				-offCommand "frameLayout -edit -enable false -collapse true meshFrame"
+				expMeshes;
+			
+			//specifiy whether to export materials or not
+			checkBox
+				-label "Materials" -annotation "Export materials for exported meshes."
+				-value true 
+				-onCommand "frameLayout -edit -enable true materialFrame"
+				-offCommand "frameLayout -edit -enable false -collapse true materialFrame"
+				expMaterials;
+			
+			//whether to export the object hierarchy or not
+			checkBox
+				-label "Object hierarchy"
+				-annotation "Export the object hierarchy of the scene."
+				-value true
+				exphierarchy;				
+			
+			//whether to export the cameras or not
+			checkBox 
+				-label "Scene cameras"
+				-annotation "Exports cameras created within the scene."
+				-value true
+				expCameras;
+			
+			//whether to export lights or not
+			checkBox 
+				-label "Lights"
+				-annotation "Export lights."
+				-value true 
+				expLights;
+	
+		setParent ..;
+		
+		// Now set to current settings.
+		$currentOptions = $initialSettings;
+		
+		if ( size( $currentOptions ) > 0 ) 
+		{
+			tokenize( $currentOptions, ";", $optionList );
+			
+			for ( $index = 0; $index < size( $optionList ); $index++ )
+			{
+				tokenize( $optionList[$index], "=", $optionBreakDown );
+	
+				if ( $optionBreakDown[0] == "expMeshes" )
+				{
+					if ( $optionBreakDown[1] == "0" )
+						checkBox -edit -value false expMeshes;
+				}						
+				else if ( $optionBreakDown[0] == "expMaterials" )
+				{
+					if ( $optionBreakDown[1] == "0" )
+						checkBox -edit -value false expMaterials;
+				}				
+				else if ( $optionBreakDown[0] == "exphierarchy" )
+				{
+					if ( $optionBreakDown[1] == "0" )
+						checkBox -edit -value false exphierarchy;
+				}				
+				else if ( $optionBreakDown[0] == "expCameras" )
+				{
+					if ( $optionBreakDown[1] == "0" )
+						checkBox -edit -value false expCameras;
+				}				
+				else if ( $optionBreakDown[0] == "expLights" )
+				{
+					if ( $optionBreakDown[1] == "0" )
+						checkBox -edit -value false expLights;
+				}
+			}
+		}
+		
+		return "";
+		
+	}
+	else if ( $action == "query" )	
+	{
+		
+		string $option = "-meshes ";
+		if( `checkBox -q -value expMeshes` == 1 )
+			$option	+= "true ";
+		else
+			$option	+= "false ";			
+			
+		$option += "-materials ";
+		if( `checkBox -q -value expMaterials` == 1 )
+			$option	+= "true ";
+		else
+			$option	+= "false ";
+			
+		$option += "-hierarchy ";
+		if( `checkBox -q -value exphierarchy` == 1 )
+			$option	+= "true ";
+		else
+			$option	+= "false ";
+			
+		$option += "-cameras ";
+		if( `checkBox -q -value expCameras` == 1 )
+			$option	+= "true ";
+		else
+			$option	+= "false ";
+			
+		$option += "-lights ";
+		if( `checkBox -q -value expLights` == 1 )
+			$option	+= "true ";
+		else
+			$option	+= "false ";
+		
+		print( $option );
+		return $option;
+	}
+}
+
+
+proc string meshOptions( string $action, string $initialSettings )
+{
+	if ( $action == "post" )
+	{
+		int		$bResult;
+		string	$currentOptions;
+		string	$optionList[];
+		string	$optionBreakDown[];
+		int		$index;
+		
+		//group the options together
+		columnLayout -adj true -columnAlign "left";
+		
+			text -label "Include:" -font "boldLabelFont";
+			checkBox -label "Lighting normals" -annotation "Include mesh normals." -value true meshNormals;
+			checkBox -label "Texture coordinates" -annotation "Include mesh texture coordinates ( UVs )." -value true meshTexCoords;
+			
+		setParent ..;
+		
+		// Now set to current settings.
+		$currentOptions = $initialSettings;
+		
+		if ( size( $currentOptions ) > 0 ) 
+		{
+			tokenize( $currentOptions, ";", $optionList );
+			
+			for ( $index = 0; $index < size( $optionList ); $index++ )
+			{
+				tokenize( $optionList[$index], "=", $optionBreakDown );
+	
+				if ( $optionBreakDown[0] == "meshNormals" )
+				{
+					if ( $optionBreakDown[1] == "0" )
+						checkBox -edit -value false meshNormals;
+				}
+				else if ( $optionBreakDown[0] == "meshTexCoords" )
+				{
+					if ( $optionBreakDown[1] == "0" )
+						checkBox -edit -value false meshTexCoords;
+				}
+			}
+		}
+		
+		return "";
+	}
+	else if ( $action == "query" )
+	{
+		string $option = "";
+		
+		$option += "-normals ";
+		if( `checkBox -q -value meshNormals` == 1 )
+			$option	+= "true ";
+		else
+			$option	+= "false ";
+			
+		$option += "-texcoords ";
+		if( `checkBox -q -value meshTexCoords` == 1 )
+			$option	+= "true ";
+		else
+			$option	+= "false ";
+		
+		print( $option );
+		return $option;
+	}
+}
+
+proc string materialOptions( string $action, string $initialSettings )
+{
+	if ( $action == "post" )
+	{
+		int		$bResult;
+		string	$currentOptions;
+		string	$optionList[];
+		string	$optionBreakDown[];
+		int		$index;
+		
+		
+		columnLayout -adj true -columnAlign "left";
+					
+			//Specify whether to include the full file path in the export
+			checkBox -label "Use full pathname" -annotation "Include the full path to textures." 
+				-value true useFullImagePath;
+			
+			separator;
+			
+			//Check box to specify whether to copy images of not
+			checkBox -label "Copy images..." -annotation "Copies used images into the target folder." 
+				-value true 
+				-onCommand "frameLayout -edit -enable true copyImageFrame"
+				-offCommand "frameLayout -edit -enable false -collapse true copyImageFrame" copyImages;
+			
+			frameLayout -borderVisible false -labelVisible false copyImageFrame;
+				columnLayout -adj true;
+				
+					//The folder which to copy images to
+					rowColumnLayout -numberOfColumns 3 -columnWidth 1 100 -columnWidth 2 200 -columnWidth 3 100;
+						
+						text -label "Image folder:";
+						
+						textField -fileName "../textures" imageFolder;
+						
+						button -label "..." -command "imagefolderBrowser();";
+														
+					setParent ..;
+					
+					
+					//Image format drop down list
+					optionMenuGrp -label "Image format : " -columnWidth 1 100 -columnWidth 2 200 imageFormat;
+	 					menuItem -label "As Original";
+	 					menuItem -label "Targa (.tga)";
+	 					menuItem -label "Bitmap (.bmp)";
+	 				optionMenuGrp -edit -select 2 imageFormat;
+		 			
+	 				checkBox
+						-label "Overwite existing : "
+						-annotation "Overwrites existing images of the same name."
+						-value true overWriteImage;
+						
+	 			setParent ..;
+	 		setParent ..;
+		setParent ..;
+		
+		// Now set to current settings.
+		$currentOptions = $initialSettings;
+		
+		if ( size( $currentOptions ) > 0 ) 
+		{
+			tokenize( $currentOptions, ";", $optionList );
+			
+			for ( $index = 0; $index < size( $optionList ); $index++ )
+			{
+				tokenize( $optionList[$index], "=", $optionBreakDown );
+	
+				if ( $optionBreakDown[0] == "useFullImagePath" )
+				{
+					if ( $optionBreakDown[1] == "0" )
+						checkBox -edit -value false useFullImagePath;
+				}
+				else if ( $optionBreakDown[0] == "copyImages" )
+				{
+					if ( $optionBreakDown[1] == "0" )
+						checkBox -edit -value false copyImages;
+				}
+				else if ( $optionBreakDown[0] == "imageFolder" )
+				{
+					//textField -edit -text $optionBreakDown[1] imageFolder;
+				}
+				else if ( $optionBreakDown[0] == "imageFormat" )
+				{
+					//optionMenuGrp -edit -select $optionBreakDown[1] imageFormat;
+				}
+				else if ( $optionBreakDown[0] == "overWriteImage" )
+				{
+					//radioButtonGrp -edit -sl $optionBreakDown[1] overWriteImage;
+				}			
+			}
+		}
+	
+		return 1;
+	}
+	else if ( $action == "query" )
+	{
+		string $option = "-fullpaths ";
+		if( `checkBox -q -value useFullImagePath` == 1 )
+			$option	+= "true ";
+		else
+			$option	+= "false ";
+			
+		$option += "-copyimages ";
+		if( `checkBox -q -value copyImages` == 1 )
+			$option	+= "true ";
+		else
+			$option	+= "false ";
+				
+		//string $strImgFolder = 'textField -q -fileName imageFolder';
+		//$option += "imageFolder=" + $strImgFolder;
+		
+		print( $option );
+		return $option;
+	}
+}
+
+global proc int CXMLexportConfig( string $parent, string $action, string $initialSettings, string $resultCallback ) 
+{
+
+	// if we need to create	the	user interface...
+	if ($action	== "post") 
+	{
+		
+		// attachs the GUI to the correct parent layout
+		setParent $parent;
+		
+		frameLayout -label "Format..."  -borderVisible false -marginHeight 5 ;
+			exportOptions( $action, $initialSettings);
+		setParent ..;
+		
+		//The main option frame
+		frameLayout -label "Include..."  -borderVisible false -marginHeight 5 ;
+			includeOptions( $action, $initialSettings);
+		setParent ..;
+				
+		//Tab layout for extra options
+		tabLayout -width 300 -innerMarginWidth 5 -innerMarginHeight 5 tabs;
+		
+			frameLayout -label "Mesh options"  -borderVisible false meshFrame;
+				meshOptions( $action, $initialSettings);
+			setParent ..;		
+			
+			frameLayout -label "Material options" -borderVisible false materialFrame;
+				materialOptions( $action, $initialSettings );
+			setParent ..;
+		
+		tabLayout -edit -tabLabel meshFrame "Meshes" -tabLabel materialFrame "Materials" tabs;
+		
+	}
+	else if ( $action == "query" )	
+	{
+		print( "\n~~Crog XML File exporter by Craig Hutchinson.~~\n" );
+		string $option = "";
+		
+		$option += exportOptions( $action, "" );
+		$option += includeOptions( $action, "" );
+		$option += meshOptions( $action, "" );
+		$option += materialOptions( $action, "" );
+		
+		print( "\n" );
+				
+		eval( $resultCallback + $option	);
+		
+	}
+
+	return 1;
+
+}
+
+
+global proc	int	showExportCXML(  ) 
+{
+	global string $CXMLwindow;
+
+	//Make sure we don't create another window the same
+	if (`window -exists $CXMLwindow`)
+	{
+	
+	}
+	else
+	{	
+
+		$CXMLwindow = `window -title "Long Name"
+ 			-iconName "Short Name"
+ 			-widthHeight 200 55
+ 			-sizeable false
+ 			-resizeToFitChildren true`;
+ 			
+ 			columnLayout -adjustableColumn true;
+	 		
+ 			setParent ..;
+ 			
+ 		setParent ..;
+	 	
+ 		CXMLexportConfig( $CXMLwindow, "post", "", "" ) ;
+	 	
+ 		setParent $CXMLwindow;
+			
+		columnLayout -adjustableColumn true;
+ 			button -label "Export" -command "doExportCXML()" ;
+ 			button -label "Cancel" -command "cancelExportCXML()";
+ 		setParent ..; 	
+ 	}
+ 	
+ 	showWindow $CXMLwindow;
+ 	
+ 	return 1;
+}
+
+
+global proc	int	doExportCXML() 
+{
+	fileBrowserDialog -mode 1 -fileCommand ( "CXMLexportFile" ) -fileType "image" 
+		-actionName  "Set output file..." -operationMode "SaveAs";
+		
+	return 1;
+
+}
+
+
+//Called from do export when the filename for export has been seelcted
+global proc int CXMLexportFile( string $filename, string $fileType )
+{
+	
+	CXMLexportConfig( "", "query", "", "exportCXML -filename \"" + $filename + "\" ");
+	
+	return 1;
+}
+
+global proc int cancelExportCXML() 
+{
+	global string $CXMLwindow;
+
+	if (`window -exists $CXMLwindow`)
+	{
+		deleteUI $CXMLwindow;
+	}
+	
+	return 0;
+}
+
+
+//Plugin mel scripts
+
+//## REGISTER ##
+//string $pluginFile= "KismoMayaPlugin.mll";
+//loadPlugin $pluginFile;
+
+//## UNREGISTER	##
+//string $pluginFile= "KismoMayaPlugin.mll";
+//If the plugin	is in use force	it to unload by	creating a new scene
+//if( !`pluginInfo-query -unloadOk $pluginFile`	)
+//	file -f	new;
+//unloadPlugin$pluginFile;

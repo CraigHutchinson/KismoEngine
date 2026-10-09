@@ -1,0 +1,49 @@
+/*
+ * Legacy source: verbatim copy from the Kismo archive, imported 2026-10-09.
+ * Origin: \\crogserver\Development\C++\_ARCHIVE_\Kismo v0.4\KismoFRX\Named.h
+ * Status: superseded by kismo-core/_SOURCE_/KismoFramework/Named.h (same name, content differs)
+ */
+#ifndef KISMOFRX_NAMED_H
+#define KISMOFRX_NAMED_H
+
+#include "KismoFRX/Types.h"
+//#include "Platform/Platform.h"
+
+namespace kismo
+{
+	/** \brief Defines an interface for a 'named' object
+	\remarks The name can only be set in the constructor, derive to a custom type to access setName() */
+	class KISMOFRX_EXPORT Named
+	{
+	public:
+
+		/** \brief Constructor
+		\param[in] name Specifies the name of the object 
+		*/
+		Named( const String& name ) : 
+			m_name( name ) 
+		{}
+
+		virtual ~Named() {}
+		
+		/** \brief Returns the name of the object 
+		*/
+		const String& getName() const	
+		{ return m_name; }	
+	
+	protected:
+
+		/** \brief Protected setName() so derived classes can change the name if required 
+			\param[in] the new name of the object 
+		*/
+		void setName( const String& name )
+		{ m_name = name; }	
+
+	private:
+		String m_name; ///< Holds the name of the object
+	};
+
+
+} //END: kismo
+
+#endif

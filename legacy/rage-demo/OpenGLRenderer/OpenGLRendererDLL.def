@@ -1,0 +1,8 @@
+; Legacy source: verbatim copy from the Kismo archive, imported 2026-10-09.
+; Origin: \\crogserver\Development\C++\_ARCHIVE_\RAGE_Demo\OpenGLRenderer\OpenGLRendererDLL.def
+; Status: duplicate of kismo-v0.3/OpenGLRenderer/OpenGLRendererDLL.def
+LIBRARY	"OpenGLRenderer"
+EXPORTS
+	dllGetInfo @1
+	dllStartPlugin @2
+	dllStopPlugin  @3
